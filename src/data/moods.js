@@ -65,7 +65,7 @@ export const moods = [
   // ── SAD ──────────────────────────────────────────────────
   {
     id: 'sad',
-    emoji: '🥺',
+    emoji: '😔',
     label: 'Sad',
     sub: 'low, teary, heavy',
     greeting: "Take your space first, princess. Come find me whenever you feel like it.",

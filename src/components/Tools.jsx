@@ -402,7 +402,7 @@ export function Pillow() {
       : hits < 10
       ? 'okay okay, I deserved that.'
       : hits < 20
-      ? 'feeling better yet? 🥺'
+      ? 'feeling better yet? 😅'
       : hits < 40
       ? 'princess you have a VERY strong arm.'
       : 'he has surrendered. completely. 🏳️'
