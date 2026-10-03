@@ -8,5 +8,5 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   // inline fonts so the site is fully self-contained (works offline / as one file)
-  build: { assetsInlineLimit: 100000000 },
+  build: { assetsInlineLimit: 100000000, rollupOptions: { input: 'app.html' } },
 })
