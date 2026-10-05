@@ -12,7 +12,8 @@ const HERO = {
   study: { animate: { rotate: [0, -6, 0, 6, 0], y: [0, -6, 0] }, transition: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' } },
   missing: { animate: { scale: [1, 1.12, 1] }, transition: { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } },
   angry: { animate: { x: [0, -6, 6, -6, 6, 0, 0, 0, 0, 0] }, transition: { duration: 2.2, repeat: Infinity } },
-  anxious: { animate: { rotate: [0, 360] }, transition: { duration: 8, repeat: Infinity, ease: 'linear' } },
+  anxious: { animate: { y: [0, -6, 0], scale: [1, 1.04, 1] }, transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } },
+  overthinking: { animate: { rotate: [0, 360] }, transition: { duration: 8, repeat: Infinity, ease: 'linear' } },
   quiet: { animate: { opacity: [1, 0.55, 1], scale: [1, 0.96, 1] }, transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' } },
   bored: { animate: { rotate: [0, -12, 12, 0], y: [0, -8, 0] }, transition: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' } },
   sleepless: { animate: { rotate: [-10, 6, -10], filter: ['drop-shadow(0 0 6px #fde385)', 'drop-shadow(0 0 22px #fde385)', 'drop-shadow(0 0 6px #fde385)'] }, transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } },
@@ -60,6 +61,14 @@ export default function MoodPage({ mood, onBack, onPick }) {
         return <T.Punish accent={accent} />
       case 'breathe':
         return <T.Breathe />
+      case 'breatheBox':
+        return <T.Breathe box dark={dark} />
+      case 'butterflyTap':
+        return <T.ButterflyTap accent={accent} />
+      case 'unclench':
+        return <T.Unclench />
+      case 'worryJar':
+        return <T.WorryJar accent={accent} />
       case 'breatheSlow':
         return <T.Breathe slow dark={dark} />
       case 'ground':

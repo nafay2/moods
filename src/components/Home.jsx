@@ -60,7 +60,7 @@ export default function Home({ onPick }) {
         </motion.p>
 
         <div className="mt-8 grid grid-cols-2 gap-3">
-          {moods.filter((m) => !m.games).map((m, i) => (
+          {moods.filter((m) => !m.games).map((m, i, list) => (
             <motion.button
               key={m.id}
               type="button"
@@ -70,7 +70,7 @@ export default function Home({ onPick }) {
               transition={{ type: 'spring', stiffness: 180, damping: 16, delay: 0.3 + i * 0.05 }}
               whileHover={{ y: -4, scale: 1.02 }}
               whileTap={{ scale: 0.92, rotate: i % 2 ? 2 : -2 }}
-              className={`shimmer relative rounded-3xl px-3 py-5 text-center bg-gradient-to-br ${m.theme.card} border border-white/80 shadow-sm overflow-hidden ${
+              className={`${list.length % 2 && i === list.length - 1 ? 'col-span-2' : ''} shimmer relative rounded-3xl px-3 py-5 text-center bg-gradient-to-br ${m.theme.card} border border-white/80 shadow-sm overflow-hidden ${
                 m.dark ? 'text-cream' : 'text-forest-800'
               }`}
             >

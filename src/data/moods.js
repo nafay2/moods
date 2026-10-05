@@ -181,7 +181,7 @@ export const moods = [
 
   // ── OVERTHINKING ─────────────────────────────────────────
   {
-    id: 'anxious',
+    id: 'overthinking',
     ambient: '🫧',
     emoji: '🌀',
     label: 'Overthinking',
@@ -199,6 +199,32 @@ export const moods = [
       lines: ['Hades never overthinks. Hades just naps. Be like Hades. 😼', 'Hades recommends: lie down, blink slowly, ignore everyone.'],
     },
     theme: { bg: 'from-icy-100 via-forest-50 to-cream', card: 'from-icy-100 to-forest-100', accent: 'from-icy-400 to-forest-400' },
+  },
+
+  // ── ANXIOUS ──────────────────────────────────────────────
+  {
+    id: 'anxious',
+    ambient: '🦋',
+    emoji: '😰',
+    label: 'Anxious',
+    sub: 'jittery, heart racing',
+    greeting: "Okay, princess. Let's slow everything down. One small thing at a time.",
+    notes: [
+      "Your body is being dramatic right now. It feels awful, but it passes. It always passes.",
+      'Nothing needs fixing this second. Just slow it down a little.',
+      'Anxiety is very good at making things look bigger than they are. Breathe first, decide later.',
+      "It's okay to step away from whatever started this. It will still be there when you're calmer.",
+      'Feet on the floor. Shoulders down. Jaw loose. You are doing fine.',
+    ],
+    tools: ['breatheBox', 'butterflyTap', 'unclench', 'worryJar', 'rain', 'song', 'notes'],
+    cat: {
+      who: 'hades',
+      lines: [
+        'Hades is completely unbothered. Borrow some of his unbothered energy. 😼',
+        'Hades has sat down on your feet. He calls it grounding. You call it heavy.',
+      ],
+    },
+    theme: { bg: 'from-icy-50 via-cream to-butter-50', card: 'from-icy-50 to-butter-100', accent: 'from-icy-400 to-forest-400' },
   },
 
   // ── QUIET ────────────────────────────────────────────────

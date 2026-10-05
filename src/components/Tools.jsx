@@ -534,9 +534,16 @@ export function Punish({ accent }) {
   )
 }
 
-export function Breathe({ slow = false, dark = false }) {
-  // slow (for sleep): 4-7-8. normal: 4-4-6
-  const phases = slow
+export function Breathe({ slow = false, box = false, dark = false }) {
+  // slow (for sleep): 4-7-8. box (for anxiety): 4-4-4-4. normal: 4-4-6
+  const phases = box
+    ? [
+        ['Breathe in', 4, 1.25],
+        ['Hold', 4, 1.25],
+        ['Breathe out', 4, 0.8],
+        ['Hold', 4, 0.8],
+      ]
+    : slow
     ? [
         ['Breathe in', 4, 1.25],
         ['Hold', 7, 1.25],
@@ -566,7 +573,7 @@ export function Breathe({ slow = false, dark = false }) {
   const { ph, left, rounds } = st
   const [label, secs, scale] = phases[ph]
   return (
-    <Card title={slow ? 'sleepy breathing (4-7-8)' : 'breathe with me'} dark={dark}>
+    <Card title={box ? 'box breathing (4-4-4-4)' : slow ? 'sleepy breathing (4-7-8)' : 'breathe with me'} dark={dark}>
       <div className="relative mx-auto w-48 h-48 flex items-center justify-center">
         <motion.div
           className={`absolute inset-6 rounded-full ${dark ? 'bg-icy-300/25' : 'bg-gradient-to-br from-icy-200 to-forest-200'}`}
@@ -2021,6 +2028,183 @@ export function CleanScreen() {
           </Btn>
         </div>
       )}
+    </Card>
+  )
+}
+
+
+// ── Anxious mood tools ────────────────────────────────────────
+
+// Butterfly tap: cross your arms over your chest and tap your shoulders, left then right.
+export function ButterflyTap({ accent }) {
+  const [on, setOn] = useState(false)
+  const [left, setLeft] = useState(60)
+  const [side, setSide] = useState(0)
+
+  useEffect(() => {
+    if (!on) return
+    const tap = setInterval(() => setSide((x) => 1 - x), 700)
+    const clock = setInterval(() => setLeft((t) => (t > 0 ? t - 1 : 0)), 1000)
+    return () => {
+      clearInterval(tap)
+      clearInterval(clock)
+    }
+  }, [on])
+
+  useEffect(() => {
+    if (on && left === 0) setOn(false)
+  }, [on, left])
+
+  const done = !on && left === 0
+  return (
+    <Card title="butterfly tap">
+      <p className="font-body text-sm text-forest-600 mb-4">
+        Cross your arms over your chest, hands on your shoulders. Tap left, then right, slowly, following the wings. Breathe normally.
+      </p>
+      <div className="relative h-32 flex items-center justify-center">
+        <motion.span
+          className="text-7xl inline-block"
+          animate={on ? { scaleX: [1, 0.35, 1], y: [0, -6, 0] } : { scaleX: 1, y: 0 }}
+          transition={on ? { duration: 1.4, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
+        >
+          🦋
+        </motion.span>
+        {on && (
+          <>
+            <motion.span animate={{ opacity: side === 0 ? 1 : 0.2, scale: side === 0 ? 1.15 : 0.9 }} className="absolute left-6 font-body text-sm text-peony-600">
+              left
+            </motion.span>
+            <motion.span animate={{ opacity: side === 1 ? 1 : 0.2, scale: side === 1 ? 1.15 : 0.9 }} className="absolute right-6 font-body text-sm text-peony-600">
+              right
+            </motion.span>
+          </>
+        )}
+      </div>
+      <p className="font-body text-sm text-forest-600 min-h-[1.25rem]">
+        {on ? `${left}s left` : done ? 'Done. Notice if anything feels even a little softer. 🦋' : ''}
+      </p>
+      <div className="mt-3">
+        <Btn
+          small
+          ghost={on}
+          accent={accent}
+          onClick={() => {
+            if (on) setOn(false)
+            else {
+              setLeft(60)
+              setSide(0)
+              setOn(true)
+            }
+          }}
+        >
+          {on ? 'stop' : done ? 'again (1 minute)' : 'start (1 minute)'}
+        </Btn>
+      </div>
+    </Card>
+  )
+}
+
+const UNCLENCH = [
+  'Drop your shoulders away from your ears',
+  'Unclench your jaw, let your teeth part a little',
+  'Open your hands, wiggle your fingers',
+  'Feel your feet flat on the floor',
+  'Take one sip of water',
+  'One slow breath out, longer than the breath in',
+]
+export function Unclench() {
+  const [done, setDone] = useState({})
+  const count = Object.values(done).filter(Boolean).length
+  return (
+    <Card title="quick body check">
+      <p className="font-body text-sm text-forest-600 mb-3">Anxiety hides in your body. Tick each one as you do it.</p>
+      <div className="grid grid-cols-1 gap-2 text-left">
+        {UNCLENCH.map((r, k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setDone((d) => ({ ...d, [k]: !d[k] }))}
+            className="flex items-center gap-3 rounded-2xl bg-white/80 border border-icy-100 px-4 py-3"
+          >
+            <span className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center text-[11px] ${done[k] ? 'bg-icy-400 border-icy-400 text-white' : 'border-icy-300'}`}>
+              {done[k] ? '✓' : ''}
+            </span>
+            <span className={`font-body text-[15px] ${done[k] ? 'text-forest-400 line-through' : 'text-forest-700'}`}>{r}</span>
+          </button>
+        ))}
+      </div>
+      <p className="font-body text-sm italic text-forest-600 mt-3 min-h-[1.25rem]">
+        {count === UNCLENCH.length ? 'All done. Your body just got the message: it is safe to calm down. 🤍' : count > 0 ? `${count} of ${UNCLENCH.length}` : ''}
+      </p>
+    </Card>
+  )
+}
+
+// Worry jar: write the worry, put it in the jar, close the lid. Nothing is saved or sent.
+export function WorryJar({ accent }) {
+  const [text, setText] = useState('')
+  const [jarred, setJarred] = useState(0)
+  const [dropping, setDropping] = useState(null)
+
+  const drop = () => {
+    const t = text.trim()
+    if (!t) return
+    setDropping({ id: Date.now(), t: t.length > 40 ? t.slice(0, 40) + '…' : t })
+    setText('')
+    setTimeout(() => {
+      setDropping(null)
+      setJarred((n) => n + 1)
+    }, 1100)
+  }
+
+  return (
+    <Card title="worry jar">
+      <p className="font-body text-sm text-forest-600 mb-3">
+        Write the worry down, then put it in the jar. You don't have to carry it around right now. Nobody sees this.
+      </p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={3}
+        placeholder="what's worrying you…"
+        className="block w-full min-w-0 max-w-full rounded-2xl bg-white/80 border border-icy-100 px-4 py-3 font-body text-[15px] text-forest-800 placeholder:text-forest-400/60 outline-none focus:border-icy-300 resize-none"
+      />
+      <div className="relative h-36 mt-3 flex items-end justify-center overflow-hidden">
+        <AnimatePresence>
+          {dropping && (
+            <motion.span
+              key={dropping.id}
+              initial={{ y: -110, opacity: 1, scale: 1 }}
+              animate={{ y: -20, opacity: 0, scale: 0.4, rotate: 20 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1, ease: 'easeIn' }}
+              className="absolute top-24 max-w-[80%] px-3 py-1.5 rounded-xl bg-butter-100 border border-butter-300 font-body text-xs text-forest-700 shadow-sm"
+            >
+              {dropping.t}
+            </motion.span>
+          )}
+        </AnimatePresence>
+        <div className="relative">
+          <motion.div
+            animate={dropping ? { y: -10, rotate: -12 } : { y: 0, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+            className="mx-auto w-20 h-3 rounded-md bg-forest-300"
+          />
+          <div className="w-24 h-24 rounded-b-3xl rounded-t-lg border-4 border-icy-200 bg-white/50 flex flex-wrap-reverse content-start justify-center gap-1 p-2 overflow-hidden">
+            {Array.from({ length: Math.min(jarred, 12) }).map((_, i) => (
+              <span key={i} className="w-4 h-3 rounded-sm bg-butter-200 border border-butter-300" />
+            ))}
+          </div>
+        </div>
+      </div>
+      <p className="font-body text-sm italic text-forest-600 mt-2 min-h-[1.25rem]">
+        {jarred > 0 ? `${jarred} worr${jarred === 1 ? 'y' : 'ies'} in the jar. Lid's on. They can wait. 🦋` : ''}
+      </p>
+      <div className="mt-2">
+        <Btn small accent={accent} onClick={drop}>
+          put it in the jar
+        </Btn>
+      </div>
     </Card>
   )
 }
