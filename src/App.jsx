@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import FloatingPetals from './components/FloatingPetals'
 import PasswordGate from './components/PasswordGate'
 import Home from './components/Home'
@@ -78,6 +78,7 @@ export default function App() {
   const mood = moods.find((m) => m.id === moodId)
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="grain relative min-h-screen w-full bg-cream overflow-x-hidden">
       {!mood?.dark && (
         <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
@@ -86,7 +87,7 @@ export default function App() {
           <div className="absolute -bottom-24 left-1/4 w-72 h-72 rounded-full bg-butter-200/40 blur-3xl" />
         </div>
       )}
-      <FloatingPetals count={mood ? 6 : 10} variant={mood?.dark ? 'leaf' : 'petal'} />
+      <FloatingPetals key={mood?.id || 'home'} count={mood ? 9 : 10} emoji={mood?.ambient || '🌸'} />
 
       <AnimatePresence mode="wait">
         {!unlocked ? (
@@ -105,10 +106,10 @@ export default function App() {
         ) : mood ? (
           <motion.div
             key={mood.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.35 }}
+            initial={{ opacity: 0, y: 40, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 160, damping: 20 }}
           >
             <MoodPage mood={mood} onBack={back} onPick={pick} />
           </motion.div>
@@ -119,5 +120,6 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    </MotionConfig>
   )
 }

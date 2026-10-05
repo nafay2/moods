@@ -4,6 +4,7 @@ import CatSVG from './CatSVG'
 import { TapPop } from './EasterEggs'
 import { moods } from '../data/moods'
 import { daysTogether } from '../data/content'
+import { useHeartBurst } from './FloatingHearts'
 
 function greeting() {
   const h = new Date().getHours()
@@ -15,8 +16,15 @@ function greeting() {
 }
 
 export default function Home({ onPick }) {
+  const { triggerFromEvent, portal } = useHeartBurst()
+  // tiny pause so the heart burst is visible before the page changes
+  const go = (id, e) => {
+    triggerFromEvent(e)
+    setTimeout(() => onPick(id), 220)
+  }
   return (
     <div className="relative z-10 w-full min-h-screen px-4 sm:px-6 pt-14 pb-16">
+      {portal}
       <div className="max-w-xl mx-auto text-center">
         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="flex justify-center">
           <TapPop below messages={['Hi princess. 🌸', 'Whatever the mood, there is a page for it.', 'Even the panda one. 🐼']}>
@@ -54,16 +62,23 @@ export default function Home({ onPick }) {
             <motion.button
               key={m.id}
               type="button"
-              onClick={() => onPick(m.id)}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 + i * 0.04, duration: 0.4 }}
-              whileTap={{ scale: 0.96 }}
-              className={`relative rounded-3xl px-3 py-5 text-center bg-gradient-to-br ${m.theme.card} border border-white/80 shadow-sm overflow-hidden ${
+              onClick={(e) => go(m.id, e)}
+              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 180, damping: 16, delay: 0.3 + i * 0.05 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.92, rotate: i % 2 ? 2 : -2 }}
+              className={`shimmer relative rounded-3xl px-3 py-5 text-center bg-gradient-to-br ${m.theme.card} border border-white/80 shadow-sm overflow-hidden ${
                 m.dark ? 'text-cream' : 'text-forest-800'
               }`}
             >
-              <span className="block text-4xl mb-2">{m.emoji}</span>
+              <motion.span
+                className="block text-4xl mb-2"
+                animate={{ y: [0, -5, 0], rotate: [0, i % 2 ? 7 : -7, 0] }}
+                transition={{ duration: 2.6 + (i % 4) * 0.4, repeat: Infinity, ease: 'easeInOut', delay: (i % 5) * 0.3 }}
+              >
+                {m.emoji}
+              </motion.span>
               <span className="block font-display text-lg leading-tight">{m.label}</span>
               <span className={`block font-body text-[12px] mt-1 ${m.dark ? 'text-cream/70' : 'text-forest-600/80'}`}>{m.sub}</span>
             </motion.button>
@@ -72,14 +87,16 @@ export default function Home({ onPick }) {
 
         <motion.button
           type="button"
-          onClick={() => onPick('games')}
-          initial={{ opacity: 0, y: 14 }}
+          onClick={(e) => go('games', e)}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.4 }}
-          whileTap={{ scale: 0.97 }}
-          className="mt-3 w-full rounded-3xl px-4 py-4 flex items-center justify-center gap-3 bg-gradient-to-r from-icy-100 via-peony-100 to-butter-100 border border-white/80 shadow-sm text-forest-800"
+          transition={{ type: 'spring', stiffness: 160, damping: 16, delay: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="games-glow shimmer relative overflow-hidden mt-3 w-full rounded-3xl px-4 py-4 flex items-center justify-center gap-3 bg-gradient-to-r from-icy-100 via-peony-100 to-butter-100 border border-white/80 shadow-sm text-forest-800"
         >
-          <span className="text-3xl">🎮</span>
+          <motion.span className="text-3xl" animate={{ rotate: [0, -12, 12, 0], y: [0, -3, 0] }} transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 1 }}>
+            🎮
+          </motion.span>
           <span className="text-left">
             <span className="block font-display text-lg leading-tight">Mini games</span>
             <span className="block font-body text-[12px] text-forest-600/80">memory, boop Percy, tic-tac-toe, peonies</span>

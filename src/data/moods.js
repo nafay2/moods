@@ -23,6 +23,7 @@ export const moods = [
   // ── HAPPY ────────────────────────────────────────────────
   {
     id: 'happy',
+    ambient: '✨',
     emoji: '🥰',
     label: 'Happy',
     sub: 'good day, good vibes',
@@ -44,6 +45,7 @@ export const moods = [
   // ── COZY ─────────────────────────────────────────────────
   {
     id: 'cozy',
+    ambient: '☕',
     emoji: '☕',
     label: 'Cozy',
     sub: 'content and sleepy',
@@ -65,6 +67,7 @@ export const moods = [
   // ── SAD ──────────────────────────────────────────────────
   {
     id: 'sad',
+    ambient: '💧',
     emoji: '😔',
     label: 'Sad',
     sub: 'low, teary, heavy',
@@ -90,6 +93,7 @@ export const moods = [
   // ── EMPTY ────────────────────────────────────────────────
   {
     id: 'empty',
+    ambient: '☁️',
     emoji: '🌫️',
     label: 'Empty',
     sub: 'blank, meh, nothing',
@@ -111,6 +115,7 @@ export const moods = [
   // ── STUDY EXHAUSTED ──────────────────────────────────────
   {
     id: 'study',
+    ambient: '📚',
     emoji: '📚',
     label: 'Study exhausted',
     sub: 'brain fried',
@@ -133,6 +138,7 @@ export const moods = [
   // ── MISSING YOU ──────────────────────────────────────────
   {
     id: 'missing',
+    ambient: '💌',
     emoji: '🫂',
     label: 'Missing you',
     sub: 'wish you were here',
@@ -154,6 +160,7 @@ export const moods = [
   // ── ANGRY AT NAFAY ───────────────────────────────────────
   {
     id: 'angry',
+    ambient: '💢',
     emoji: '😤',
     label: 'Angry at Nafay',
     sub: 'he did something (again)',
@@ -175,6 +182,7 @@ export const moods = [
   // ── OVERTHINKING ─────────────────────────────────────────
   {
     id: 'anxious',
+    ambient: '🫧',
     emoji: '🌀',
     label: 'Overthinking',
     sub: 'the 2am kind',
@@ -196,6 +204,7 @@ export const moods = [
   // ── QUIET ────────────────────────────────────────────────
   {
     id: 'quiet',
+    ambient: '🍃',
     emoji: '🫥',
     label: 'Quiet',
     sub: "don't want to talk right now",
@@ -216,6 +225,7 @@ export const moods = [
   // ── BORED ────────────────────────────────────────────────
   {
     id: 'bored',
+    ambient: '🎈',
     emoji: '🙄',
     label: 'Bored',
     sub: 'entertain me',
@@ -235,6 +245,7 @@ export const moods = [
   // ── CAN'T SLEEP ──────────────────────────────────────────
   {
     id: 'sleepless',
+    ambient: '⭐',
     emoji: '🌙',
     label: "Can't sleep",
     sub: 'night owl hours',
@@ -257,6 +268,7 @@ export const moods = [
   // ── CLINGY ───────────────────────────────────────────────
   {
     id: 'clingy',
+    ambient: '🐾',
     emoji: '🐾',
     label: 'Clingy',
     sub: 'need attention. now.',
@@ -278,6 +290,7 @@ export const moods = [
   // ── NOT ENOUGH ───────────────────────────────────────────
   {
     id: 'insecure',
+    ambient: '✨',
     emoji: '🪞',
     label: 'Not feeling enough',
     sub: 'doubting myself',
@@ -298,6 +311,7 @@ export const moods = [
   // ── NOT FEELING WELL ─────────────────────────────────────
   {
     id: 'unwell',
+    ambient: '🤍',
     emoji: '🤒',
     label: 'Not feeling well',
     sub: 'tired, achy, blah',
@@ -318,6 +332,7 @@ export const moods = [
   // ── HUNGRY ───────────────────────────────────────────────
   {
     id: 'hungry',
+    ambient: '🍗',
     emoji: '🍗',
     label: 'Hungry',
     sub: 'snack time',
@@ -338,6 +353,7 @@ export const moods = [
   // ── MINI GAMES (shown as its own button under the moods) ──
   {
     id: 'games',
+    ambient: '⭐',
     games: true,
     emoji: '🎮',
     label: 'Mini games',
@@ -347,7 +363,7 @@ export const moods = [
       'If you lose to Percy at tic-tac-toe, we never speak of it again.',
       "Beat your best score and screenshot it. I want proof.",
     ],
-    tools: ['memory', 'whack', 'tictactoe', 'pop', 'jokes'],
+    tools: ['catch', 'memory', 'whack', 'pattern', 'tictactoe', 'clean', 'pop', 'jokes'],
     cat: {
       who: 'percy',
       lines: ['Percy has been practising tic-tac-toe all day. He is still bad at it.', 'Percy wants a rematch. Percy always wants a rematch.'],
@@ -358,6 +374,7 @@ export const moods = [
   // ── PANDA MODE ───────────────────────────────────────────
   {
     id: 'panda',
+    ambient: '🎋',
     emoji: '🐼',
     label: 'Panda mode',
     sub: 'lazy, sleepy, grumpy',

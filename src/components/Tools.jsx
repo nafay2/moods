@@ -1610,3 +1610,362 @@ export function GamesLink({ onPick }) {
     </Card>
   )
 }
+
+// soft beeps for games (silently skipped if the phone blocks audio)
+let _ac = null
+function beep(freq = 520, ms = 140) {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext
+    if (!AC) return
+    _ac = _ac || new AC()
+    if (_ac.state === 'suspended') _ac.resume()
+    const o = _ac.createOscillator()
+    const g = _ac.createGain()
+    o.type = 'sine'
+    o.frequency.value = freq
+    g.gain.setValueAtTime(0.0001, _ac.currentTime)
+    g.gain.exponentialRampToValueAtTime(0.12, _ac.currentTime + 0.02)
+    g.gain.exponentialRampToValueAtTime(0.0001, _ac.currentTime + ms / 1000)
+    o.connect(g)
+    g.connect(_ac.destination)
+    o.start()
+    o.stop(_ac.currentTime + ms / 1000 + 0.05)
+  } catch (e) {
+    /* no sound, no problem */
+  }
+}
+
+// ── Catch the treats: drag the bowl, catch food, dodge wet clothes ──
+const GOOD = ['🍗', '🍦', '☕', '🍗', '🍦']
+const BAD = '👕'
+export function CatchTreats() {
+  const [running, setRunning] = useState(false)
+  const [played, setPlayed] = useState(false)
+  const [time, setTime] = useState(30)
+  const [score, setScore] = useState(0)
+  const [best, setBest] = useState(0)
+  const [items, setItems] = useState([])
+  const [bowl, setBowl] = useState(50)
+  const [flash, setFlash] = useState(null)
+  const bowlRef = useRef(50)
+  const boxRef = useRef(null)
+  const raf = useRef(0)
+  const last = useRef(0)
+  const spawnAt = useRef(0)
+
+  const move = (clientX) => {
+    const r = boxRef.current?.getBoundingClientRect()
+    if (!r) return
+    const pct = Math.min(92, Math.max(8, ((clientX - r.left) / r.width) * 100))
+    bowlRef.current = pct
+    setBowl(pct)
+  }
+
+  useEffect(() => {
+    if (!running) return
+    last.current = performance.now()
+    spawnAt.current = 0
+    const tick = (now) => {
+      const dt = Math.min(50, now - last.current)
+      last.current = now
+      spawnAt.current -= dt
+      setItems((list) => {
+        let next = list.map((it) => ({ ...it, y: it.y + it.v * dt }))
+        if (spawnAt.current <= 0) {
+          spawnAt.current = 520
+          const bad = Math.random() < 0.22
+          next.push({ id: now + Math.random(), x: 8 + Math.random() * 84, y: -8, v: 0.028 + Math.random() * 0.018, e: bad ? BAD : GOOD[Math.floor(Math.random() * GOOD.length)], bad })
+        }
+        const kept = []
+        for (const it of next) {
+          if (it.y >= 80 && it.y <= 92 && Math.abs(it.x - bowlRef.current) < 11) {
+            if (it.bad) {
+              setScore((s) => Math.max(0, s - 2))
+              setFlash('wet clothes! −2 😖')
+              beep(180, 220)
+            } else {
+              setScore((s) => s + 1)
+              setFlash(null)
+              beep(660, 90)
+            }
+            continue
+          }
+          if (it.y < 105) kept.push(it)
+        }
+        return kept
+      })
+      raf.current = requestAnimationFrame(tick)
+    }
+    raf.current = requestAnimationFrame(tick)
+    const clock = setInterval(() => setTime((t) => t - 1), 1000)
+    return () => {
+      cancelAnimationFrame(raf.current)
+      clearInterval(clock)
+    }
+  }, [running])
+
+  useEffect(() => {
+    if (running && time <= 0) {
+      setRunning(false)
+      setItems([])
+      setBest((b) => Math.max(b, score))
+    }
+  }, [time, running, score])
+
+  const verdict = score >= 30 ? 'snack queen 👑' : score >= 18 ? 'very well fed, princess' : score >= 8 ? 'decent snack haul' : 'the snacks escaped 😭'
+
+  return (
+    <Card title="catch the treats">
+      <p className="font-body text-sm text-forest-600 mb-3">Slide your finger to move the bowl. Catch 🍗 🍦 ☕, dodge the wet clothes 👕.</p>
+      <div
+        ref={boxRef}
+        onPointerDown={(e) => move(e.clientX)}
+        onPointerMove={(e) => move(e.clientX)}
+        className="relative h-72 rounded-2xl bg-gradient-to-b from-icy-50 to-peony-50 border border-peony-100 overflow-hidden select-none"
+        style={{ touchAction: 'none' }}
+      >
+        {items.map((it) => (
+          <span key={it.id} className="absolute text-3xl pointer-events-none" style={{ left: `${it.x}%`, top: `${it.y}%`, transform: 'translate(-50%,-50%)' }}>
+            {it.e}
+          </span>
+        ))}
+        <div className="absolute bottom-2 text-4xl pointer-events-none transition-[left] duration-75" style={{ left: `${bowl}%`, transform: 'translateX(-50%)' }}>
+          🥣
+        </div>
+        {running && (
+          <p className="absolute top-2 right-3 font-body text-xs text-forest-600">
+            {time}s · {score} {flash && <span className="text-peony-600">· {flash}</span>}
+          </p>
+        )}
+        {!running && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
+            {played && (
+              <p className="font-body text-sm text-forest-700">
+                You caught <b>{score}</b>. {verdict}
+                {best > 0 && <span className="block text-xs text-forest-500/80 mt-1">best: {best}</span>}
+              </p>
+            )}
+            <Btn
+              small
+              onClick={() => {
+                setScore(0)
+                setTime(30)
+                setItems([])
+                setFlash(null)
+                setPlayed(true)
+                setRunning(true)
+              }}
+            >
+              {played ? 'play again' : 'start (30 seconds)'}
+            </Btn>
+          </div>
+        )}
+      </div>
+    </Card>
+  )
+}
+
+// ── Colour pattern: repeat the sequence in her four colours ──
+const PADS = [
+  { name: 'baby pink', cls: 'from-peony-300 to-peony-500', freq: 392 },
+  { name: 'icy blue', cls: 'from-icy-200 to-icy-400', freq: 494 },
+  { name: 'forest green', cls: 'from-forest-300 to-forest-500', freq: 587 },
+  { name: 'butter yellow', cls: 'from-butter-200 to-butter-400', freq: 659 },
+]
+export function ColourPattern() {
+  const [seq, setSeq] = useState([])
+  const [step, setStep] = useState(0)
+  const [lit, setLit] = useState(null)
+  const [phase, setPhase] = useState('idle') // idle | showing | input | over
+  const [best, setBest] = useState(0)
+  const timers = useRef([])
+
+  useEffect(() => () => timers.current.forEach(clearTimeout), [])
+
+  const show = (s) => {
+    setPhase('showing')
+    timers.current.forEach(clearTimeout)
+    timers.current = []
+    s.forEach((p, i) => {
+      timers.current.push(setTimeout(() => { setLit(p); beep(PADS[p].freq, 260) }, 500 + i * 620))
+      timers.current.push(setTimeout(() => setLit(null), 500 + i * 620 + 380))
+    })
+    timers.current.push(setTimeout(() => { setPhase('input'); setStep(0) }, 500 + s.length * 620))
+  }
+
+  const start = () => {
+    const s = [Math.floor(Math.random() * 4)]
+    setSeq(s)
+    show(s)
+  }
+
+  const press = (i) => {
+    if (phase !== 'input') return
+    setLit(i)
+    beep(PADS[i].freq, 180)
+    setTimeout(() => setLit(null), 180)
+    if (i !== seq[step]) {
+      setPhase('over')
+      setBest((b) => Math.max(b, seq.length - 1))
+      beep(150, 400)
+      return
+    }
+    if (step + 1 === seq.length) {
+      const s = [...seq, Math.floor(Math.random() * 4)]
+      setSeq(s)
+      setTimeout(() => show(s), 450)
+    } else setStep(step + 1)
+  }
+
+  const msg =
+    phase === 'idle'
+      ? 'Watch the colours light up, then tap them in the same order.'
+      : phase === 'showing'
+      ? 'watch…'
+      : phase === 'input'
+      ? `your turn · round ${seq.length}`
+      : `Oops! You reached round ${seq.length}. ${seq.length - 1 >= 8 ? 'Your memory is scary good.' : seq.length - 1 >= 4 ? 'Not bad at all, princess.' : 'Percy could do better. (He could not.)'}`
+
+  return (
+    <Card title="colour pattern">
+      <div className="grid grid-cols-2 gap-3 max-w-[240px] mx-auto">
+        {PADS.map((p, i) => (
+          <motion.button
+            key={p.name}
+            type="button"
+            onClick={() => press(i)}
+            animate={{ scale: lit === i ? 1.08 : 1, opacity: lit === i ? 1 : phase === 'input' ? 0.85 : 0.55 }}
+            transition={{ duration: 0.12 }}
+            aria-label={p.name}
+            className={`aspect-square rounded-3xl bg-gradient-to-br ${p.cls} border-4 ${lit === i ? 'border-white shadow-glow' : 'border-white/50'}`}
+          />
+        ))}
+      </div>
+      <p className="font-body text-sm text-forest-700 mt-4 min-h-[2.5rem]">{msg}</p>
+      {best > 0 && <p className="font-body text-xs text-forest-500/80">best: round {best}</p>}
+      {(phase === 'idle' || phase === 'over') && (
+        <div className="mt-3">
+          <Btn small onClick={start}>
+            {phase === 'over' ? 'try again' : 'start'}
+          </Btn>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+// ── Clean the screen: rub away the blur (her favourite habit) ──
+export function CleanScreen() {
+  const wrap = useRef(null)
+  const canvas = useRef(null)
+  const [pct, setPct] = useState(0)
+  const [done, setDone] = useState(false)
+  const [round, setRound] = useState(0)
+  const strokes = useRef(0)
+  const lastPt = useRef(null)
+
+  useEffect(() => {
+    const c = canvas.current
+    const w = wrap.current
+    if (!c || !w) return
+    const dpr = Math.min(2, window.devicePixelRatio || 1)
+    const W = w.clientWidth
+    const H = w.clientHeight
+    c.width = W * dpr
+    c.height = H * dpr
+    c.style.width = W + 'px'
+    c.style.height = H + 'px'
+    const ctx = c.getContext('2d')
+    ctx.scale(dpr, dpr)
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.fillStyle = 'rgba(200, 205, 210, 0.93)'
+    ctx.fillRect(0, 0, W, H)
+    for (let i = 0; i < 45; i++) {
+      const r = 10 + Math.random() * 38
+      ctx.fillStyle = `rgba(${150 + Math.random() * 60},${150 + Math.random() * 60},${160 + Math.random() * 60},0.55)`
+      ctx.beginPath()
+      ctx.arc(Math.random() * W, Math.random() * H, r, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.fillStyle = 'rgba(90,90,100,0.75)'
+    ctx.font = '600 14px Poppins, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('this screen is blurry 😖', W / 2, H / 2)
+    setPct(0)
+    setDone(false)
+    strokes.current = 0
+  }, [round])
+
+  const measure = () => {
+    const c = canvas.current
+    const ctx = c.getContext('2d')
+    const { data } = ctx.getImageData(0, 0, c.width, c.height)
+    let clear = 0
+    let total = 0
+    for (let i = 3; i < data.length; i += 4 * 16) {
+      total++
+      if (data[i] < 40) clear++
+    }
+    const p = Math.round((clear / total) * 100)
+    setPct(p)
+    if (p >= 82 && !done) {
+      setDone(true)
+      ctx.clearRect(0, 0, c.width, c.height)
+      setPct(100)
+      beep(784, 200)
+    }
+  }
+
+  const rub = (e) => {
+    if (done) return
+    if (e.type === 'pointermove' && e.buttons === 0 && e.pointerType === 'mouse') return
+    const r = canvas.current.getBoundingClientRect()
+    const x = e.clientX - r.left
+    const y = e.clientY - r.top
+    const ctx = canvas.current.getContext('2d')
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.lineCap = 'round'
+    ctx.lineWidth = 46
+    ctx.beginPath()
+    const from = lastPt.current || { x, y }
+    ctx.moveTo(from.x, from.y)
+    ctx.lineTo(x, y)
+    ctx.stroke()
+    lastPt.current = { x, y }
+    if (++strokes.current % 10 === 0) measure()
+  }
+
+  return (
+    <Card title="clean the screen">
+      <p className="font-body text-sm text-forest-600 mb-3">You can't stand a blurry screen. So… rub it clean. 🧽</p>
+      <div ref={wrap} className="relative h-52 rounded-2xl overflow-hidden border border-peony-100 select-none" style={{ touchAction: 'none' }}>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-peony-50 via-cream to-icy-50 px-4">
+          <PeonySVG size={70} />
+          <p className="font-display italic text-lg text-forest-800 mt-2">Spotless. Just how you like it.</p>
+          <p className="font-body text-xs text-forest-500/80 mt-1">(Nafay's jokes are still blurry though.)</p>
+        </div>
+        <canvas
+          ref={canvas}
+          onPointerDown={(e) => {
+            lastPt.current = null
+            rub(e)
+          }}
+          onPointerMove={rub}
+          onPointerUp={() => {
+            lastPt.current = null
+            measure()
+          }}
+          className={`absolute inset-0 transition-opacity duration-500 ${done ? 'opacity-0' : 'opacity-100'}`}
+        />
+      </div>
+      <p className="font-body text-sm text-forest-600 mt-3 min-h-[1.25rem]">{done ? 'Sparkling. ✨' : pct > 0 ? `${pct}% clean` : 'use your finger'}</p>
+      {done && (
+        <div className="mt-2">
+          <Btn small ghost onClick={() => setRound((r) => r + 1)}>
+            make it blurry again
+          </Btn>
+        </div>
+      )}
+    </Card>
+  )
+}

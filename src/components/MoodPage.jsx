@@ -2,6 +2,27 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import * as T from './Tools'
 
+// how the big emoji at the top moves, per mood
+const HERO = {
+  happy: { animate: { y: [0, -14, 0], rotate: [0, -8, 8, 0] }, transition: { duration: 1.6, repeat: Infinity, ease: 'easeInOut' } },
+  cozy: { animate: { rotate: [-4, 4, -4], y: [0, -4, 0] }, transition: { duration: 3.4, repeat: Infinity, ease: 'easeInOut' } },
+  sad: { animate: { rotate: [-5, 5, -5], y: [0, 3, 0] }, transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } },
+  empty: { animate: { x: [-10, 10, -10], opacity: [0.7, 1, 0.7] }, transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' } },
+  study: { animate: { rotate: [0, -6, 0, 6, 0], y: [0, -6, 0] }, transition: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' } },
+  missing: { animate: { scale: [1, 1.12, 1] }, transition: { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } },
+  angry: { animate: { x: [0, -6, 6, -6, 6, 0, 0, 0, 0, 0] }, transition: { duration: 2.2, repeat: Infinity } },
+  anxious: { animate: { rotate: [0, 360] }, transition: { duration: 8, repeat: Infinity, ease: 'linear' } },
+  quiet: { animate: { opacity: [1, 0.55, 1], scale: [1, 0.96, 1] }, transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' } },
+  bored: { animate: { rotate: [0, -12, 12, 0], y: [0, -8, 0] }, transition: { duration: 2.6, repeat: Infinity, ease: 'easeInOut' } },
+  sleepless: { animate: { rotate: [-10, 6, -10], filter: ['drop-shadow(0 0 6px #fde385)', 'drop-shadow(0 0 22px #fde385)', 'drop-shadow(0 0 6px #fde385)'] }, transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } },
+  clingy: { animate: { scale: [1, 1.15, 1, 1.15, 1], rotate: [0, -8, 0, 8, 0] }, transition: { duration: 2, repeat: Infinity } },
+  insecure: { animate: { rotateY: [0, 180, 360] }, transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' } },
+  unwell: { animate: { rotate: [-6, 6, -6], y: [0, 2, 0] }, transition: { duration: 3.6, repeat: Infinity, ease: 'easeInOut' } },
+  hungry: { animate: { rotate: [0, -15, 15, -15, 0], scale: [1, 1.1, 1] }, transition: { duration: 1.8, repeat: Infinity, repeatDelay: 0.6 } },
+  panda: { animate: { rotate: [0, -20, 20, 0], x: [0, -6, 6, 0] }, transition: { duration: 3.2, repeat: Infinity, ease: 'easeInOut' } },
+  games: { animate: { y: [0, -10, 0], rotate: [0, 10, -10, 0] }, transition: { duration: 1.4, repeat: Infinity, ease: 'easeInOut' } },
+}
+
 export default function MoodPage({ mood, onBack, onPick }) {
   const dark = !!mood.dark
   const accent = mood.theme.accent
@@ -54,6 +75,12 @@ export default function MoodPage({ mood, onBack, onPick }) {
         return <T.WhackPercy />
       case 'tictactoe':
         return <T.TicTacToe />
+      case 'catch':
+        return <T.CatchTreats />
+      case 'pattern':
+        return <T.ColourPattern />
+      case 'clean':
+        return <T.CleanScreen />
       case 'gamesLink':
         return <T.GamesLink onPick={onPick} />
       case 'wyr':
@@ -95,6 +122,12 @@ export default function MoodPage({ mood, onBack, onPick }) {
 
   return (
     <div className={`relative z-10 w-full min-h-screen bg-gradient-to-b ${mood.theme.bg} ${dark ? 'on-dark' : ''}`}>
+      {/* slow drifting colour blobs */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+        <span className={`blob blob-a ${dark ? 'bg-icy-400/15' : 'bg-peony-200/60'}`} />
+        <span className={`blob blob-b ${dark ? 'bg-forest-400/20' : 'bg-icy-200/60'}`} />
+        <span className={`blob blob-c ${dark ? 'bg-butter-300/10' : 'bg-butter-200/50'}`} />
+      </div>
 
       <div className="fixed top-0 inset-x-0 z-40 safe-top">
         <div className={`h-16 bg-gradient-to-b ${dark ? 'from-forest-900 via-forest-900/70' : 'from-cream via-cream/70'} to-transparent`}>
@@ -110,23 +143,33 @@ export default function MoodPage({ mood, onBack, onPick }) {
         </div>
       </div>
 
-      <div className="w-full max-w-md mx-auto px-3.5 sm:px-4 pt-20 pb-16 min-w-0">
+      <div className="relative z-10 w-full max-w-md mx-auto px-3.5 sm:px-4 pt-20 pb-16 min-w-0">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center mb-7">
-          <motion.p
-            initial={{ scale: 0.6, rotate: -8 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 12 }}
-            className="text-6xl"
+          <motion.div
+            initial={{ scale: 0.3, rotate: -25, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 11 }}
+            className="inline-block"
           >
-            {mood.emoji}
-          </motion.p>
+            <motion.p className="text-6xl inline-block" {...(HERO[mood.id] || HERO.happy)}>
+              {mood.emoji}
+            </motion.p>
+          </motion.div>
           <h1 className={`font-display text-3xl mt-2 ${dark ? 'text-cream' : 'text-forest-800'}`}>{mood.label}</h1>
           <p className={`font-body text-[15px] mt-2 max-w-xs mx-auto ${dark ? 'text-cream/80' : 'text-forest-600'}`}>{mood.greeting}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 gap-4">
-          {tools.map((t) => (
-            <div key={t}>{render(t)}</div>
+          {tools.map((t, i) => (
+            <motion.div
+              key={t}
+              initial={{ opacity: 0, y: 36, scale: 0.96 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ type: 'spring', stiffness: 140, damping: 18, delay: Math.min(i, 3) * 0.08 }}
+            >
+              {render(t)}
+            </motion.div>
           ))}
         </div>
 

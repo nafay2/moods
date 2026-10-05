@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 
 // Purely CSS-driven drifting petal particles. Cheap, GPU-friendly,
 // and respects prefers-reduced-motion via the global stylesheet.
-export default function FloatingPetals({ count = 14, variant = 'petal', className = '' }) {
+export default function FloatingPetals({ count = 14, variant = 'petal', emoji: custom, className = '' }) {
   const petals = useMemo(
     () =>
       Array.from({ length: count }).map((_, i) => ({
@@ -17,7 +17,7 @@ export default function FloatingPetals({ count = 14, variant = 'petal', classNam
     [count]
   )
 
-  const emoji = variant === 'heart' ? '💗' : variant === 'leaf' ? '🍃' : '🌸'
+  const emoji = custom || (variant === 'heart' ? '💗' : variant === 'leaf' ? '🍃' : '🌸')
 
   return (
     <div className={`pointer-events-none fixed inset-0 overflow-hidden z-0 ${className}`} aria-hidden="true">
