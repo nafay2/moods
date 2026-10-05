@@ -5,6 +5,7 @@ import { TapPop } from './EasterEggs'
 import { moods } from '../data/moods'
 import { daysTogether } from '../data/content'
 import { useHeartBurst } from './FloatingHearts'
+import LiveBackground from './LiveBackground'
 
 function greeting() {
   const h = new Date().getHours()
@@ -25,7 +26,8 @@ export default function Home({ onPick }) {
   return (
     <div className="relative z-10 w-full min-h-screen px-4 sm:px-6 pt-14 pb-16">
       {portal}
-      <div className="max-w-xl mx-auto text-center">
+      <LiveBackground bg="from-peony-50 via-cream to-icy-50" particle="🌸" />
+      <div className="relative z-10 max-w-xl mx-auto text-center">
         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }} className="flex justify-center">
           <TapPop below messages={['Hi princess. 🌸', 'Whatever the mood, there is a page for it.', 'Even the panda one. 🐼']}>
             <PeonySVG size={78} className="drop-shadow-[0_0_30px_rgba(255,143,179,0.45)]" />

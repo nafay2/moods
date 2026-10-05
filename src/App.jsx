@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import FloatingPetals from './components/FloatingPetals'
 import PasswordGate from './components/PasswordGate'
+import TapSparkles from './components/TapSparkles'
 import Home from './components/Home'
 import MoodPage from './components/MoodPage'
 import { moods } from './data/moods'
@@ -80,14 +81,8 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
     <div className="grain relative min-h-screen w-full bg-cream overflow-x-hidden">
-      {!mood?.dark && (
-        <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-          <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-peony-200/50 blur-3xl" />
-          <div className="absolute top-1/3 -right-28 w-72 h-72 rounded-full bg-icy-200/50 blur-3xl" />
-          <div className="absolute -bottom-24 left-1/4 w-72 h-72 rounded-full bg-butter-200/40 blur-3xl" />
-        </div>
-      )}
-      <FloatingPetals key={mood?.id || 'home'} count={mood ? 9 : 10} emoji={mood?.ambient || '🌸'} />
+      <TapSparkles />
+      {!unlocked && <FloatingPetals count={12} />}
 
       <AnimatePresence mode="wait">
         {!unlocked ? (

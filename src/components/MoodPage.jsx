@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import * as T from './Tools'
+import LiveBackground from './LiveBackground'
 
 // how the big emoji at the top moves, per mood
 const HERO = {
@@ -121,13 +122,8 @@ export default function MoodPage({ mood, onBack, onPick }) {
   const hasCat = mood.tools.includes('cat') || mood.cat
 
   return (
-    <div className={`relative z-10 w-full min-h-screen bg-gradient-to-b ${mood.theme.bg} ${dark ? 'on-dark' : ''}`}>
-      {/* slow drifting colour blobs */}
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <span className={`blob blob-a ${dark ? 'bg-icy-400/15' : 'bg-peony-200/60'}`} />
-        <span className={`blob blob-b ${dark ? 'bg-forest-400/20' : 'bg-icy-200/60'}`} />
-        <span className={`blob blob-c ${dark ? 'bg-butter-300/10' : 'bg-butter-200/50'}`} />
-      </div>
+    <div className={`relative z-10 w-full min-h-screen ${dark ? 'on-dark' : ''}`}>
+      <LiveBackground bg={mood.theme.bg} dark={dark} particle={mood.ambient} />
 
       <div className="fixed top-0 inset-x-0 z-40 safe-top">
         <div className={`h-16 bg-gradient-to-b ${dark ? 'from-forest-900 via-forest-900/70' : 'from-cream via-cream/70'} to-transparent`}>
@@ -155,7 +151,7 @@ export default function MoodPage({ mood, onBack, onPick }) {
               {mood.emoji}
             </motion.p>
           </motion.div>
-          <h1 className={`font-display text-3xl mt-2 ${dark ? 'text-cream' : 'text-forest-800'}`}>{mood.label}</h1>
+          <h1 className={`font-display text-3xl mt-2 ${dark ? 'text-cream' : 'shiny-title'}`}>{mood.label}</h1>
           <p className={`font-body text-[15px] mt-2 max-w-xs mx-auto ${dark ? 'text-cream/80' : 'text-forest-600'}`}>{mood.greeting}</p>
         </motion.div>
 

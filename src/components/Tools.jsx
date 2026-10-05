@@ -49,7 +49,7 @@ export function Btn({ children, onClick, accent, href, small = false, ghost = fa
     ? dark
       ? 'border border-white/25 text-cream bg-white/5'
       : 'border border-peony-200 text-forest-700 bg-white/70'
-    : `bg-gradient-to-br ${accent || 'from-peony-400 to-peony-600'} text-white shadow-glow`
+    : `shimmer relative overflow-hidden bg-gradient-to-br ${accent || 'from-peony-400 to-peony-600'} text-white shadow-glow`
   if (href) {
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" className={`${base} ${look} ${className}`}>
