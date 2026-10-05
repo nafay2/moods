@@ -224,7 +224,7 @@ export const moods = [
       'Option 1: clean your screen. Option 2: clean it again. You know you want to.',
       "You could also roast me. I'm right here. Unprotected. Defenceless.",
     ],
-    tools: ['pop', 'wyr', 'question', 'jokes'],
+    tools: ['gamesLink', 'wyr', 'question', 'jokes'],
     cat: {
       who: 'percy',
       lines: ['Percy suggests knocking something off a table. Works every time.', 'Percy is plotting something. Percy is always plotting something.'],
@@ -335,6 +335,26 @@ export const moods = [
     theme: { bg: 'from-butter-100 via-peony-50 to-cream', card: 'from-butter-100 to-peony-100', accent: 'from-butter-400 to-peony-500' },
   },
 
+  // ── MINI GAMES (shown as its own button under the moods) ──
+  {
+    id: 'games',
+    games: true,
+    emoji: '🎮',
+    label: 'Mini games',
+    sub: 'just for fun',
+    greeting: 'Pick a game, princess. Percy is already warming up. 🐾',
+    notes: [
+      'If you lose to Percy at tic-tac-toe, we never speak of it again.',
+      "Beat your best score and screenshot it. I want proof.",
+    ],
+    tools: ['memory', 'whack', 'tictactoe', 'pop', 'jokes'],
+    cat: {
+      who: 'percy',
+      lines: ['Percy has been practising tic-tac-toe all day. He is still bad at it.', 'Percy wants a rematch. Percy always wants a rematch.'],
+    },
+    theme: { bg: 'from-peony-50 via-icy-50 to-butter-50', card: 'from-icy-100 to-peony-100', accent: 'from-peony-400 to-icy-400' },
+  },
+
   // ── PANDA MODE ───────────────────────────────────────────
   {
     id: 'panda',
@@ -372,6 +392,23 @@ export const jokes = [
   "Why did the overthinker bring a ladder? To finally get over it.",
   "If you were a cat you'd be a ragdoll. If Nafay were a cat he'd be the one that falls off the sofa and pretends it was on purpose.",
   "What's ice cream's favourite day of the week? Sundae. Nafay thinks this is his best joke. It is not.",
+  "Nafay said he'd stop overthinking. He's been thinking about how to do that for a week.",
+  'Percy knocked a glass off the table and looked straight at you. Nafay does the same thing with his jokes.',
+  'Hades has two moods: asleep and judging. Somehow still more organised than Nafay.',
+  "Nafay's texting speed: instant. Nafay's joke quality: still loading…",
+  "What's Percy's favourite subject? Hiss-tory. 🐾",
+  "Why don't cats play cards? Too many cheetahs. Percy is one of them.",
+  "What do you call a chicken tender that tells jokes? A comedi-hen. Nafay wrote that one. Unfortunately.",
+  "Hades read Nafay's texts once. He's been ignoring everyone ever since.",
+  "How does a ragdoll cat say sorry? It flops. Very effective. Nafay should try it.",
+  "What do you call a sleepy panda? A pan-duh. You knew that one, you're probably in panda mode right now. 🐼",
+  'Nafay tried to be cool once. Percy laughed. Cats cannot laugh. That is how bad it was.',
+  'Why does Nafay tell blurry jokes? So you have something to clean while you read them.',
+  "What's a butterfly's favourite subject? Mothematics. 🦋",
+  "Percy's five-year plan: eat, sleep, be clingy, repeat. Honestly? Solid plan.",
+  "Nafay asked Hades for advice once. Hades walked away mid-sentence. Best advice Nafay's ever had.",
+  'Why did the chai break up with the coffee? It needed someone a little more steeped in feelings. ☕',
+  "Nafay says he's a morning person. The morning disagrees.",
 ]
 
 export const questions = [

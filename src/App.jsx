@@ -28,12 +28,15 @@ export default function App() {
   // back gesture works too. Some previews block history/address changes; then
   // we just skip that part.
   const [moodId, setMoodId] = useState(readHash)
-  const pushed = useRef(false)
+  // how many pages deep we are from the home screen (for the "← moods" button)
+  const depth = useRef(0)
 
   useEffect(() => {
     const on = () => {
-      pushed.current = false
-      setMoodId(readHash())
+      const id = readHash()
+      if (!id) depth.current = 0
+      else depth.current = Math.max(0, depth.current - 1)
+      setMoodId(id)
     }
     window.addEventListener('popstate', on)
     window.addEventListener('hashchange', on)
@@ -47,18 +50,19 @@ export default function App() {
     setMoodId(id)
     try {
       window.history.pushState({ mood: id }, '', `#${id}`)
-      pushed.current = true
+      depth.current += 1
     } catch (e) {
-      pushed.current = false
+      /* history blocked in this preview: page still switches */
     }
   }
 
   const back = () => {
     setMoodId(null)
-    if (pushed.current) {
-      pushed.current = false
+    const d = depth.current
+    depth.current = 0
+    if (d > 0) {
       try {
-        window.history.back()
+        window.history.go(-d) // always all the way back to the moods list
       } catch (e) {
         /* fine, we're already home */
       }
@@ -106,7 +110,7 @@ export default function App() {
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.35 }}
           >
-            <MoodPage mood={mood} onBack={back} />
+            <MoodPage mood={mood} onBack={back} onPick={pick} />
           </motion.div>
         ) : (
           <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>

@@ -50,7 +50,7 @@ export default function Home({ onPick }) {
         </motion.p>
 
         <div className="mt-8 grid grid-cols-2 gap-3">
-          {moods.map((m, i) => (
+          {moods.filter((m) => !m.games).map((m, i) => (
             <motion.button
               key={m.id}
               type="button"
@@ -69,6 +69,22 @@ export default function Home({ onPick }) {
             </motion.button>
           ))}
         </div>
+
+        <motion.button
+          type="button"
+          onClick={() => onPick('games')}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.4 }}
+          whileTap={{ scale: 0.97 }}
+          className="mt-3 w-full rounded-3xl px-4 py-4 flex items-center justify-center gap-3 bg-gradient-to-r from-icy-100 via-peony-100 to-butter-100 border border-white/80 shadow-sm text-forest-800"
+        >
+          <span className="text-3xl">🎮</span>
+          <span className="text-left">
+            <span className="block font-display text-lg leading-tight">Mini games</span>
+            <span className="block font-body text-[12px] text-forest-600/80">memory, boop Percy, tic-tac-toe, peonies</span>
+          </span>
+        </motion.button>
 
         <div className="mt-12 flex items-end justify-center gap-10">
           <TapPop messages={["Hades is judging your mood choice. Silently. 😼", 'Hades says: pick panda. Panda is the superior mood.']}>

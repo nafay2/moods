@@ -1293,3 +1293,320 @@ export function Places() {
     </Card>
   )
 }
+
+// ── mini games ────────────────────────────────────────────────
+
+const MEMORY_FACES = [
+  { k: 'peony', node: <PeonySVG size={34} /> },
+  { k: 'hades', node: <CatSVG size={40} variant="tortie" /> },
+  { k: 'percy', node: <CatSVG size={40} variant="patch" /> },
+  { k: 'chai', node: '☕' },
+  { k: 'icecream', node: '🍦' },
+  { k: 'tenders', node: '🍗' },
+  { k: 'butterfly', node: '🦋' },
+  { k: 'rain', node: '🌧️' },
+]
+
+function shuffled(list) {
+  const a = [...list]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+export function MemoryGame() {
+  const deal = () => shuffled([...MEMORY_FACES, ...MEMORY_FACES]).map((f, i) => ({ ...f, id: i }))
+  const [cards, setCards] = useState(deal)
+  const [open, setOpen] = useState([])
+  const [matched, setMatched] = useState([])
+  const [moves, setMoves] = useState(0)
+  const [best, setBest] = useState(null)
+  const [fire, layer] = useBurst()
+  const lock = useRef(false)
+
+  const won = matched.length === cards.length
+
+  const flip = (i) => {
+    if (lock.current || open.includes(i) || matched.includes(i)) return
+    const next = [...open, i]
+    setOpen(next)
+    if (next.length === 2) {
+      setMoves((m) => m + 1)
+      const [a, b] = next
+      if (cards[a].k === cards[b].k) {
+        const nowMatched = [...matched, a, b]
+        setMatched(nowMatched)
+        setOpen([])
+        if (nowMatched.length === cards.length) {
+          fire(['🌸', '✨', '🦋', '💗'], 30)
+          setBest((bst) => (bst === null ? moves + 1 : Math.min(bst, moves + 1)))
+        }
+      } else {
+        lock.current = true
+        setTimeout(() => {
+          setOpen([])
+          lock.current = false
+        }, 800)
+      }
+    }
+  }
+
+  const restart = () => {
+    setCards(deal())
+    setOpen([])
+    setMatched([])
+    setMoves(0)
+  }
+
+  return (
+    <Card title="memory match">
+      {layer}
+      <p className="font-body text-sm text-forest-600 mb-4">Find the pairs. Hades and Percy are in there somewhere.</p>
+      <div className="grid grid-cols-4 gap-2 max-w-[300px] mx-auto">
+        {cards.map((c, i) => {
+          const up = open.includes(i) || matched.includes(i)
+          return (
+            <motion.button
+              key={c.id}
+              type="button"
+              onClick={() => flip(i)}
+              whileTap={{ scale: 0.94 }}
+              animate={{ rotateY: up ? 0 : 180 }}
+              transition={{ duration: 0.3 }}
+              aria-label={up ? c.k : 'hidden card'}
+              className={`aspect-square rounded-2xl flex items-center justify-center text-3xl border ${
+                up
+                  ? matched.includes(i)
+                    ? 'bg-forest-50 border-forest-200'
+                    : 'bg-white border-peony-200'
+                  : 'bg-gradient-to-br from-peony-200 to-peony-300 border-white'
+              }`}
+            >
+              {up ? c.node : <span className="text-white/90 text-xl">✿</span>}
+            </motion.button>
+          )
+        })}
+      </div>
+      <p className="font-body text-sm text-forest-600 mt-4 min-h-[1.25rem]">
+        {won ? `All pairs in ${moves} moves. Big brain, princess. 🧠` : `moves: ${moves}`}
+        {best !== null && <span className="block text-xs text-forest-500/80">best: {best} moves</span>}
+      </p>
+      {(won || moves > 0) && (
+        <div className="mt-3">
+          <Btn small ghost onClick={restart}>
+            {won ? 'play again' : 'shuffle & restart'}
+          </Btn>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+export function WhackPercy() {
+  const [running, setRunning] = useState(false)
+  const [time, setTime] = useState(25)
+  const [score, setScore] = useState(0)
+  const [hole, setHole] = useState(null) // { i, who }
+  const [msg, setMsg] = useState('')
+  const [best, setBest] = useState(0)
+  const [played, setPlayed] = useState(false)
+
+  useEffect(() => {
+    if (!running) return
+    const pop = setInterval(() => {
+      setHole({ i: Math.floor(Math.random() * 9), who: Math.random() < 0.25 ? 'hades' : 'percy', id: Math.random() })
+    }, 850)
+    const clock = setInterval(() => setTime((t) => t - 1), 1000)
+    return () => {
+      clearInterval(pop)
+      clearInterval(clock)
+    }
+  }, [running])
+
+  useEffect(() => {
+    if (running && time <= 0) {
+      setRunning(false)
+      setHole(null)
+      setBest((b) => Math.max(b, score))
+    }
+  }, [time, running, score])
+
+  const tap = (i) => {
+    if (!running || !hole || hole.i !== i) return
+    if (hole.who === 'percy') {
+      setScore((s) => s + 1)
+      setMsg(['got him!', 'boop 🐾', 'Percy is offended', 'again!'][Math.floor(Math.random() * 4)])
+    } else {
+      setScore((s) => Math.max(0, s - 1))
+      setMsg('Hades did NOT want to be booped. −1 😼')
+    }
+    setHole(null)
+  }
+
+  const verdict = score >= 18 ? 'Percy-booping legend 👑' : score >= 10 ? 'very fast, princess' : score >= 4 ? 'Percy escaped a few times' : 'Percy wins this round 😭'
+
+  return (
+    <Card title="boop Percy">
+      <p className="font-body text-sm text-forest-600 mb-4">Tap Percy when he pops up. Leave Hades alone, he hates it.</p>
+      <div className="grid grid-cols-3 gap-2 max-w-[270px] mx-auto select-none" style={{ touchAction: 'manipulation' }}>
+        {Array.from({ length: 9 }).map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onPointerDown={() => tap(i)}
+            aria-label={`hole ${i + 1}`}
+            className="relative aspect-square rounded-full bg-gradient-to-b from-forest-100 to-forest-200 border-4 border-forest-200 overflow-hidden"
+          >
+            <AnimatePresence>
+              {hole && hole.i === i && (
+                <motion.span
+                  key={hole.id}
+                  initial={{ y: 50 }}
+                  animate={{ y: 4 }}
+                  exit={{ y: 50 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute inset-0 flex items-end justify-center"
+                >
+                  <CatSVG size={64} variant={hole.who === 'hades' ? 'tortie' : 'patch'} />
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+        ))}
+      </div>
+      <p className="font-body text-sm text-forest-600 mt-4 min-h-[1.25rem]">
+        {running ? `${time}s · ${score} boops · ${msg}` : played ? `${score} boops. ${verdict}` : ''}
+        {!running && best > 0 && <span className="block text-xs text-forest-500/80">best: {best}</span>}
+      </p>
+      {!running && (
+        <div className="mt-3">
+          <Btn
+            small
+            onClick={() => {
+              setScore(0)
+              setTime(25)
+              setMsg('')
+              setPlayed(true)
+              setRunning(true)
+            }}
+          >
+            {played ? 'play again' : 'start (25 seconds)'}
+          </Btn>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+const LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6],
+]
+const winner = (b) => {
+  for (const [a, c, d] of LINES) if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a]
+  return b.every(Boolean) ? 'draw' : null
+}
+
+// Percy plays: wins if he can, usually blocks you (he's mischievous, not perfect)
+function percyMove(b) {
+  const empty = b.map((v, i) => (v ? null : i)).filter((i) => i !== null)
+  const tryLine = (mark) =>
+    empty.find((i) => {
+      const t = [...b]
+      t[i] = mark
+      return winner(t) === mark
+    })
+  const win = tryLine('P')
+  if (win !== undefined) return win
+  const block = tryLine('Y')
+  if (block !== undefined && Math.random() < 0.75) return block
+  if (b[4] === null && Math.random() < 0.6) return 4
+  return empty[Math.floor(Math.random() * empty.length)]
+}
+
+export function TicTacToe() {
+  const [board, setBoard] = useState(Array(9).fill(null))
+  const [thinking, setThinking] = useState(false)
+  const [tally, setTally] = useState({ you: 0, percy: 0, draw: 0 })
+  const result = winner(board)
+
+  useEffect(() => {
+    if (!result) return
+    setTally((t) => ({ ...t, [result === 'Y' ? 'you' : result === 'P' ? 'percy' : 'draw']: t[result === 'Y' ? 'you' : result === 'P' ? 'percy' : 'draw'] + 1 }))
+  }, [result])
+
+  const play = (i) => {
+    if (board[i] || result || thinking) return
+    const next = [...board]
+    next[i] = 'Y'
+    setBoard(next)
+    if (winner(next)) return
+    setThinking(true)
+    setTimeout(() => {
+      setBoard((cur) => {
+        const b = [...cur]
+        const m = percyMove(b)
+        if (m !== undefined) b[m] = 'P'
+        return b
+      })
+      setThinking(false)
+    }, 550)
+  }
+
+  const status =
+    result === 'Y'
+      ? 'You beat Percy! He is pretending he let you win. 🌸'
+      : result === 'P'
+      ? 'Percy wins. He is doing zoomies about it. 🐾'
+      : result === 'draw'
+      ? 'Draw. Percy demands a rematch.'
+      : thinking
+      ? 'Percy is thinking… (he is not, he is staring at a wall)'
+      : 'Your turn. You are 🌸, Percy is 🐾.'
+
+  return (
+    <Card title="tic-tac-toe vs Percy">
+      <div className="grid grid-cols-3 gap-2 max-w-[240px] mx-auto">
+        {board.map((v, i) => (
+          <motion.button
+            key={i}
+            type="button"
+            onClick={() => play(i)}
+            whileTap={{ scale: 0.94 }}
+            aria-label={v ? (v === 'Y' ? 'you' : 'Percy') : `square ${i + 1}`}
+            className="aspect-square rounded-2xl bg-white/85 border border-peony-100 text-4xl flex items-center justify-center"
+          >
+            {v && (
+              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 15 }}>
+                {v === 'Y' ? '🌸' : '🐾'}
+              </motion.span>
+            )}
+          </motion.button>
+        ))}
+      </div>
+      <p className="font-body text-sm text-forest-700 mt-4 min-h-[2.5rem]">{status}</p>
+      <p className="font-body text-xs text-forest-500/80">
+        you {tally.you} · Percy {tally.percy} · draws {tally.draw}
+      </p>
+      {result && (
+        <div className="mt-3">
+          <Btn small ghost onClick={() => setBoard(Array(9).fill(null))}>
+            rematch
+          </Btn>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+export function GamesLink({ onPick }) {
+  return (
+    <Card title="mini games">
+      <p className="font-body text-sm text-forest-600 mb-4">Memory match, boop Percy, tic-tac-toe and peony popping.</p>
+      <Btn onClick={() => onPick && onPick('games')}>open mini games 🎮</Btn>
+    </Card>
+  )
+}

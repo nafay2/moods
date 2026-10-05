@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import * as T from './Tools'
 
-export default function MoodPage({ mood, onBack }) {
+export default function MoodPage({ mood, onBack, onPick }) {
   const dark = !!mood.dark
   const accent = mood.theme.accent
 
@@ -48,6 +48,14 @@ export default function MoodPage({ mood, onBack }) {
         return <T.Confetti accent={accent} />
       case 'pop':
         return <T.Pop />
+      case 'memory':
+        return <T.MemoryGame />
+      case 'whack':
+        return <T.WhackPercy />
+      case 'tictactoe':
+        return <T.TicTacToe />
+      case 'gamesLink':
+        return <T.GamesLink onPick={onPick} />
       case 'wyr':
         return <T.WYR />
       case 'question':
