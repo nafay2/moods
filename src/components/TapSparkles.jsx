@@ -7,6 +7,7 @@ export default function TapSparkles() {
 
   useEffect(() => {
     const on = (e) => {
+      if (document.documentElement.classList.contains('game-on')) return
       const now = Date.now()
       if (now - last.current < 120) return
       last.current = now

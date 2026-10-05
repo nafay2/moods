@@ -240,3 +240,35 @@ img, svg, video, canvas, input, textarea, select { max-width: 100%; }
   0%, 100% { background-position: 100% 0; }
   50% { background-position: 0% 0; }
 }
+
+/* catch-the-treats items */
+.treat {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 30px;
+  line-height: 30px;
+  width: 30px;
+  text-align: center;
+  will-change: transform;
+}
+/* while a game runs, freeze the decorative background so the game stays smooth */
+.game-on .live-blob,
+.game-on .bubble,
+.game-on .sparkle,
+.game-on .star,
+.game-on .bg-shift,
+.game-on .animate-drift,
+.game-on .shimmer::after {
+  animation-play-state: paused !important;
+}
+
+/* during action games the heavy glowing decorations step aside completely
+   (blurred layers are the most expensive thing for a phone to draw) */
+.game-on .live-blob,
+.game-on .bubble,
+.game-on .sparkle,
+.game-on .star,
+.game-on .animate-drift {
+  display: none !important;
+}

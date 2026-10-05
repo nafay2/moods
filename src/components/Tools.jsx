@@ -680,6 +680,7 @@ export function Confetti({ accent }) {
 
 export function Pop() {
   const [running, setRunning] = useState(false)
+  useGameMode(running)
   const [score, setScore] = useState(0)
   const [time, setTime] = useState(20)
   const [items, setItems] = useState([])
@@ -1406,6 +1407,7 @@ export function MemoryGame() {
 
 export function WhackPercy() {
   const [running, setRunning] = useState(false)
+  useGameMode(running)
   const [time, setTime] = useState(25)
   const [score, setScore] = useState(0)
   const [hole, setHole] = useState(null) // { i, who }
@@ -1635,7 +1637,18 @@ function beep(freq = 520, ms = 140) {
   }
 }
 
+// While an action game is running, pause the decorative background animations
+// and tap sparkles so the phone spends all its effort on the game.
+function useGameMode(on) {
+  useEffect(() => {
+    if (!on) return
+    document.documentElement.classList.add('game-on')
+    return () => document.documentElement.classList.remove('game-on')
+  }, [on])
+}
+
 // ── Catch the treats: drag the bowl, catch food, dodge wet clothes ──
+// Movement is drawn directly (no React re-render per frame) so it stays smooth.
 const GOOD = ['🍗', '🍦', '☕', '🍗', '🍦']
 const BAD = '👕'
 export function CatchTreats() {
@@ -1644,70 +1657,109 @@ export function CatchTreats() {
   const [time, setTime] = useState(30)
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(0)
-  const [items, setItems] = useState([])
-  const [bowl, setBowl] = useState(50)
   const [flash, setFlash] = useState(null)
-  const bowlRef = useRef(50)
   const boxRef = useRef(null)
-  const raf = useRef(0)
-  const last = useRef(0)
-  const spawnAt = useRef(0)
+  const bowlRef = useRef(null)
+  const layerRef = useRef(null)
+  const g = useRef({ items: [], x: 0.5, target: 0.5, w: 300, h: 288, last: 0, spawn: 0, score: 0, raf: 0 })
+  useGameMode(running)
 
-  const move = (clientX) => {
+  const BOWL = 64 // bowl width in px
+  const ITEM = 30 // treat size in px
+
+  const placeBowl = () => {
+    const st = g.current
+    if (bowlRef.current) bowlRef.current.style.transform = `translate3d(${st.x * st.w - BOWL / 2}px,0,0)`
+  }
+
+  const aim = (e) => {
     const r = boxRef.current?.getBoundingClientRect()
     if (!r) return
-    const pct = Math.min(92, Math.max(8, ((clientX - r.left) / r.width) * 100))
-    bowlRef.current = pct
-    setBowl(pct)
+    const half = BOWL / 2 / r.width
+    g.current.target = Math.min(1 - half, Math.max(half, (e.clientX - r.left) / r.width))
   }
 
   useEffect(() => {
-    if (!running) return
-    last.current = performance.now()
-    spawnAt.current = 0
-    const tick = (now) => {
-      const dt = Math.min(50, now - last.current)
-      last.current = now
-      spawnAt.current -= dt
-      setItems((list) => {
-        let next = list.map((it) => ({ ...it, y: it.y + it.v * dt }))
-        if (spawnAt.current <= 0) {
-          spawnAt.current = 520
-          const bad = Math.random() < 0.22
-          next.push({ id: now + Math.random(), x: 8 + Math.random() * 84, y: -8, v: 0.028 + Math.random() * 0.018, e: bad ? BAD : GOOD[Math.floor(Math.random() * GOOD.length)], bad })
-        }
-        const kept = []
-        for (const it of next) {
-          if (it.y >= 80 && it.y <= 92 && Math.abs(it.x - bowlRef.current) < 11) {
-            if (it.bad) {
-              setScore((s) => Math.max(0, s - 2))
-              setFlash('wet clothes! −2 😖')
-              beep(180, 220)
-            } else {
-              setScore((s) => s + 1)
-              setFlash(null)
-              beep(660, 90)
-            }
-            continue
-          }
-          if (it.y < 105) kept.push(it)
-        }
-        return kept
-      })
-      raf.current = requestAnimationFrame(tick)
+    const box = boxRef.current
+    if (box) {
+      g.current.w = box.clientWidth
+      g.current.h = box.clientHeight
+      placeBowl()
     }
-    raf.current = requestAnimationFrame(tick)
+  }, [])
+
+  useEffect(() => {
+    if (!running) return
+    const st = g.current
+    const box = boxRef.current
+    st.w = box.clientWidth
+    st.h = box.clientHeight
+    st.last = performance.now()
+    st.spawn = 300
+    st.score = 0
+    const bowlTop = st.h - 58
+    const bowlBottom = st.h - 10
+
+    const tick = (now) => {
+      const dt = Math.min(40, now - st.last)
+      st.last = now
+      // bowl glides quickly toward the finger: smooth but responsive
+      st.x += (st.target - st.x) * Math.min(1, dt / 45)
+      placeBowl()
+
+      st.spawn -= dt
+      if (st.spawn <= 0) {
+        st.spawn = 480 + Math.random() * 160
+        const bad = Math.random() < 0.22
+        const el = document.createElement('span')
+        el.textContent = bad ? BAD : GOOD[Math.floor(Math.random() * GOOD.length)]
+        el.className = 'treat'
+        layerRef.current.appendChild(el)
+        const x = ITEM / 2 + Math.random() * (st.w - ITEM)
+        st.items.push({ el, x, y: -ITEM, v: st.h / (2300 + Math.random() * 900), bad })
+      }
+
+      const bowlX = st.x * st.w
+      st.items = st.items.filter((it) => {
+        it.y += it.v * dt
+        const bottom = it.y + ITEM
+        if (bottom >= bowlTop && it.y <= bowlBottom && Math.abs(it.x - bowlX) < BOWL / 2 + 6) {
+          it.el.remove()
+          if (it.bad) {
+            st.score = Math.max(0, st.score - 2)
+            setFlash('wet clothes! −2 😖')
+            beep(180, 220)
+            if (navigator.vibrate) navigator.vibrate(40)
+          } else {
+            st.score += 1
+            setFlash(null)
+            beep(660, 80)
+          }
+          setScore(st.score)
+          return false
+        }
+        if (it.y > st.h) {
+          it.el.remove()
+          return false
+        }
+        it.el.style.transform = `translate3d(${it.x - ITEM / 2}px,${it.y}px,0)`
+        return true
+      })
+      st.raf = requestAnimationFrame(tick)
+    }
+    st.raf = requestAnimationFrame(tick)
     const clock = setInterval(() => setTime((t) => t - 1), 1000)
     return () => {
-      cancelAnimationFrame(raf.current)
+      cancelAnimationFrame(st.raf)
       clearInterval(clock)
+      st.items.forEach((it) => it.el.remove())
+      st.items = []
     }
   }, [running])
 
   useEffect(() => {
     if (running && time <= 0) {
       setRunning(false)
-      setItems([])
       setBest((b) => Math.max(b, score))
     }
   }, [time, running, score])
@@ -1716,24 +1768,28 @@ export function CatchTreats() {
 
   return (
     <Card title="catch the treats">
-      <p className="font-body text-sm text-forest-600 mb-3">Slide your finger to move the bowl. Catch 🍗 🍦 ☕, dodge the wet clothes 👕.</p>
+      <p className="font-body text-sm text-forest-600 mb-3">Slide your finger anywhere in the box to move the bowl. Catch 🍗 🍦 ☕, dodge the wet clothes 👕.</p>
       <div
         ref={boxRef}
-        onPointerDown={(e) => move(e.clientX)}
-        onPointerMove={(e) => move(e.clientX)}
+        onPointerDown={(e) => {
+          if (!running) return // let the start button get its tap
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId)
+          } catch (err) {
+            /* fine */
+          }
+          aim(e)
+        }}
+        onPointerMove={(e) => running && aim(e)}
         className="relative h-72 rounded-2xl bg-gradient-to-b from-icy-50 to-peony-50 border border-peony-100 overflow-hidden select-none"
         style={{ touchAction: 'none' }}
       >
-        {items.map((it) => (
-          <span key={it.id} className="absolute text-3xl pointer-events-none" style={{ left: `${it.x}%`, top: `${it.y}%`, transform: 'translate(-50%,-50%)' }}>
-            {it.e}
-          </span>
-        ))}
-        <div className="absolute bottom-2 text-4xl pointer-events-none transition-[left] duration-75" style={{ left: `${bowl}%`, transform: 'translateX(-50%)' }}>
+        <div ref={layerRef} className="absolute inset-0 pointer-events-none" />
+        <div ref={bowlRef} className="absolute left-0 bottom-2 w-16 text-center text-[44px] leading-none pointer-events-none" style={{ willChange: 'transform' }}>
           🥣
         </div>
         {running && (
-          <p className="absolute top-2 right-3 font-body text-xs text-forest-600">
+          <p className="absolute top-2 right-3 font-body text-xs text-forest-600 pointer-events-none">
             {time}s · {score} {flash && <span className="text-peony-600">· {flash}</span>}
           </p>
         )}
@@ -1750,7 +1806,6 @@ export function CatchTreats() {
               onClick={() => {
                 setScore(0)
                 setTime(30)
-                setItems([])
                 setFlash(null)
                 setPlayed(true)
                 setRunning(true)
